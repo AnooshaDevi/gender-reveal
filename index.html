@@ -2,94 +2,503 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gender Reveal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Gender Guessing Game</title>
     <style>
+        /* STYLING CORES & POLISHED BACKGROUND PATTERNS */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            background-color: #e2e8f0;
+            background-image: radial-gradient(#cbd5e1 2px, transparent 2px);
+            background-size: 24px 24px;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            padding: 20px;
+            overflow: hidden;
+            padding: 15px;
+            transition: background 1s ease, background-image 1s ease, background-color 1s ease;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
         }
 
-        .card {
+        /* MOBILE APP CONTAINER CHASSIS */
+        .game-container {
             background-color: #ffffff;
-            padding: 40px 30px;
-            border-radius: 24px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            text-align: center;
             width: 100%;
-            max-width: 400px;
-            transition: transform 0.3s ease;
+            max-width: 430px;
+            height: 82vh;
+            max-height: 680px;
+            border-radius: 35px;
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 25px;
+            text-align: center;
+            border: 4px solid #ffffff;
+            overflow: hidden;
+            transition: background-color 1s ease, border-color 1s ease, box-shadow 1s ease;
         }
 
-        .reveal-btn {
-            background-color: #4a90e2;
-            color: white;
-            border: none;
-            padding: 16px 32px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
+        /* Repositioned layout headers higher up on screen */
+        .welcome-title {
+            font-size: 1.7rem;
+            color: #0f172a;
+            margin-top: -40px;
+            margin-bottom: 12px;
+            font-weight: 800;
+        }
+
+        .welcome-text {
+            color: #475569;
+            font-size: 0.95rem;
+            margin-bottom: 45px;
+            line-height: 1.6;
+            padding: 0 10px;
+        }
+
+        /* NAVIGATION SCREEN VIEWS */
+        .screen {
+            display: none;
             width: 100%;
+            height: 100%;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* SELECTION MENU BUTTON GROUPS */
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            padding: 0 5px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* CUSTOM IMAGE BUTTON WRAPPERS */
+        .image-side-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
             outline: none;
             -webkit-tap-highlight-color: transparent;
-            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+            transition: transform 0.1s ease;
         }
 
-        .reveal-btn:active {
-            transform: scale(0.98);
-            background-color: #357abd;
-            box-shadow: 0 2px 8px rgba(74, 144, 226, 0.4);
+        .image-side-btn:active {
+            transform: scale(0.94);
         }
 
-        .result {
-            font-size: 2rem;
+        .image-side-btn img {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            pointer-events: none;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+        }
+
+        /* THE GAME FIELD PANEL */
+        #gameCanvas {
+            width: 100%;
+            flex-grow: 1;
+            background-color: #f8fafc;
+            background-image: radial-gradient(#e2e8f0 1.5px, transparent 1.5px);
+            background-size: 16px 16px;
+            border-radius: 24px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #e2e8f0;
+        }
+
+        .score-board {
+            font-size: 1.1rem;
             font-weight: 800;
-            color: #0076ff; /* Blue text */
-            margin-top: 25px;
-            opacity: 0;
-            transform: translateY(10px);
-            transition: opacity 0.5s ease, transform 0.5s ease;
-            display: none;
+            margin-bottom: 15px;
+            color: #334155;
+            background-color: #f1f5f9;
+            padding: 10px 24px;
+            border-radius: 50px;
+            letter-spacing: 0.5px;
         }
 
-        .result.show {
-            display: block;
-            opacity: 1;
-            transform: translateY(0);
+        /* INVISIBLE HITBOX CONTAINER HOLDER */
+        .baby-balloon {
+            position: absolute;
+            width: 75px;
+            height: 75px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: floatRise linear infinite;
+            bottom: -90px;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none;
+            background: none !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        /* SOLID OPAQUE GRAPHICS ADJUSTMENT */
+        .balloon-icon {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+            opacity: 1 !important;
+            mix-blend-mode: normal !important;
+            filter: none !important;
+        }
+
+        /* Image stays completely solid through whole path upward */
+        @keyframes floatRise {
+            0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1 !important; }
+            50% { transform: translateX(12px) rotate(2deg); opacity: 1 !important; }
+            100% { transform: translateY(-820px) scale(1) rotate(-2deg); opacity: 1 !important; }
+        }
+
+        /* FINAL REVEAL ACTION BUTTON */
+        .reveal-btn {
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 900;
+            padding: 24px 44px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            animation: bouncePulse 1.4s infinite;
+            -webkit-tap-highlight-color: transparent;
+            letter-spacing: 0.5px;
+            display: inline-block;
+        }
+
+        @keyframes bouncePulse {
+            0% { transform: scale(1); box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+            50% { transform: scale(1.06); box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
+            100% { transform: scale(1); box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        }
+
+        .final-reveal {
+            font-size: 2.8rem;
+            font-weight: 900;
+            color: #ffffff;
+            display: none;
+            text-shadow: 0 4px 15px rgba(30, 41, 59, 0.5);
+            animation: superPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes superPop {
+            0% { transform: scale(0.3); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* LIGHTWEIGHT NATIVE CONFETTI PARTICLES */
+        .custom-confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            pointer-events: none;
+            z-index: 999;
+            animation: confettiFall linear forwards;
+        }
+
+        @keyframes confettiFall {
+            0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* ERROR OVERLAYS */
+        .alert-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.97);
+            border-radius: 31px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            padding: 30px;
+            z-index: 10;
+        }
+
+        .alert-overlay h2 { color: #f43f5e; font-size: 2.1rem; margin-bottom: 12px; }
+        .alert-overlay p { color: #94a3b8; margin-bottom: 25px; font-size: 1.05rem; }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #f43f5e, #be123c);
+            color: white;
+            border: none;
+            padding: 15px 45px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(244, 63, 94, 0.3);
         }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <button id="revealBtn" class="reveal-btn">Reveal the Gender</button>
-        <div id="resultText" class="result">It is a boy!</div>
+<div class="game-container">
+
+    <!-- WRONG TEAM POPUP ALERT -->
+    <div id="alertOverlay" class="alert-overlay">
+        <h2>Oops! Wrong One! 🛑</h2>
+        <p id="alertMessage">Don't mix up your selections or you have to start all over again!</p>
+        <button class="restart-btn" onclick="resetToMenu()">Try Again 😂</button>
     </div>
 
-    <script>
-        document.getElementById('revealBtn').addEventListener('click', function() {
-            const result = document.getElementById('resultText');
-            
-            // Show the text element
-            result.classList.add('show');
-            
-            // Optional: Hide or disable the button after click
-            this.style.display = 'none';
-        });
-    </script>
+    <!-- SCREEN 1: WELCOME SCREEN (Girl Button Placed First) -->
+    <div id="screenMenu" class="screen active">
+        <h1 class="welcome-title">Whose Side Are You?</h1>
+        <p class="welcome-text">Pick a team side and catch 10 of your matching babies to unlock the secret. Don't catch the wrong one!</p>
 
-</body>
-</html>
+        <div class="btn-group">
+            <button class="image-side-btn" onclick="startGame('girl')">
+                <img src="girl_button.png" alt="Team Girl">
+            </button>
+            <button class="image-side-btn" onclick="startGame('boy')">
+                <img src="boy_button.png" alt="Team Boy">
+            </button>
+        </div>
+    </div>
+
+    <!-- SCREEN 2: MAIN ARCADE STAGE -->
+    <div id="screenGame" class="screen">
+        <!-- FIXED LABEL: Always states "Babies Caught:" -->
+        <div class="score-board">Babies Caught: <span id="scoreCounter">0</span> / 10</div>
+        <div id="gameCanvas"></div>
+    </div>
+
+    <!-- SCREEN 3: ENDGAME GENDER REVEAL -->
+    <div id="screenReveal" class="screen">
+        <button id="revealBtn" class="reveal-btn" onclick="triggerFinalReveal()">REVEAL THE GENDER</button>
+        <h1 id="revealText" class="final-reveal">IT IS A BOY! 👶💙✨</h1>
+    </div>
+
+</div>
+
+<script>
+    let chosenSide = '';
+    let score = 0;
+    let spawnInterval;
+    let confettiInterval;
+    const gameCanvas = document.getElementById('gameCanvas');
+    const scoreCounter = document.getElementById('scoreCounter');
+
+    // Clean local folder PNG graphics injection layout
+    const boyImgHtml = `<img class="balloon-icon" src="boy_icon.png" alt="Boy">`;
+    const girlImgHtml = `<img class="balloon-icon" src="girl_icon.png" alt="Girl">`;
+
+    function startGame(side) {
+        chosenSide = side;
+        score = 0;
+        scoreCounter.innerText = score;
+        switchScreen('screenGame');
+
+        const revealBtn = document.getElementById('revealBtn');
+        if (revealBtn) {
+            revealBtn.style.display = 'inline-block'; // Protect visibility state
+            if (chosenSide === 'boy') {
+                revealBtn.style.background = 'linear-gradient(135deg, #1d4ed8, #1e40af)';
+            } else {
+                revealBtn.style.background = 'linear-gradient(135deg, #be185d, #9d174d)';
+            }
+        }
+
+        const revealText = document.getElementById('revealText');
+        if (revealText) revealText.style.display = 'none';
+
+        clearInterval(spawnInterval);
+        spawnInterval = setInterval(spawnBalloon, 800);
+    }
+
+    function spawnBalloon() {
+        if (!gameCanvas) return;
+
+        const balloon = document.createElement('div');
+        balloon.classList.add('baby-balloon');
+
+        const isBoy = Math.random() > 0.5;
+
+        if (isBoy) {
+            balloon.innerHTML = boyImgHtml;
+            balloon.dataset.type = 'boy';
+        } else {
+            balloon.innerHTML = girlImgHtml;
+            balloon.dataset.type = 'girl';
+        }
+
+        const maxWidth = gameCanvas.clientWidth - 80;
+        balloon.style.left = Math.max(5, Math.random() * maxWidth) + 'px';
+
+        const duration = 4.5 + Math.random() * 2.0;
+        balloon.style.animationDuration = duration + 's';
+
+        // Safe mobile touch execution layers
+        let elementWasClicked = false;
+        function handleEvent(e) {
+            e.preventDefault();
+            if (elementWasClicked) return;
+            elementWasClicked = true;
+            handleBalloonClick(balloon);
+        }
+
+        balloon.addEventListener('touchstart', handleEvent, { passive: false });
+        balloon.addEventListener('click', handleEvent);
+
+        gameCanvas.appendChild(balloon);
+
+        setTimeout(() => {
+            if (balloon && balloon.parentNode === gameCanvas) {
+                balloon.remove();
+            }
+        }, duration * 1000);
+    }
+
+    function handleBalloonClick(balloonElement) {
+        if (!balloonElement || !balloonElement.parentNode) return;
+
+        const type = balloonElement.dataset.type;
+        balloonElement.remove();
+
+        if (type === chosenSide) {
+            score++;
+            scoreCounter.innerText = score;
+
+            if (score >= 10) {
+                endGame();
+            }
+        } else {
+            clearInterval(spawnInterval);
+            const sideLabel = chosenSide === 'boy' ? 'Boy' : 'Girl';
+            const wrongLabel = chosenSide === 'boy' ? 'Girl' : 'Boy';
+
+            const alertMessageEl = document.getElementById('alertMessage');
+            const alertOverlayEl = document.getElementById('alertOverlay');
+
+            if (alertMessageEl) {
+                alertMessageEl.innerText = `You are on Team ${sideLabel}! Tapping a ${wrongLabel} baby resets your progress to zero. Stay focused!`;
+            }
+            if (alertOverlayEl) {
+                alertOverlayEl.style.display = 'flex';
+            }
+        }
+    }
+
+    function endGame() {
+        clearInterval(spawnInterval);
+        if (gameCanvas) gameCanvas.innerHTML = '';
+        switchScreen('screenReveal');
+    }
+
+        function triggerFinalReveal() {
+            const revealBtn = document.getElementById('revealBtn');
+            const revealText = document.getElementById('revealText');
+            const appContainer = document.querySelector('.game-container');
+
+            if (revealBtn) revealBtn.style.display = 'none';
+
+            // Set full screen background image smoothly
+            document.body.style.backgroundImage = "url('boy_background.png')";
+            document.body.style.backgroundColor = 'transparent';
+
+            // Hides the white box container completely so your image is 100% clear
+            if (appContainer) {
+                appContainer.style.display = 'none';
+            }
+
+            // Centers and styles the reveal text perfectly using Trebuchet MS
+            if (revealText) {
+                // FIX: Strips off old CSS classes to kill the conflicting animation overrides
+                revealText.className = '';
+
+                document.body.appendChild(revealText);
+                revealText.style.display = 'block';
+
+                // FIXED TYPOGRAPHY: Elegant, modern geometric font stack styling
+                revealText.style.fontFamily = '"Trebuchet MS", "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", sans-serif';
+                revealText.style.fontSize = '3.2rem';
+                revealText.style.fontWeight = 'bold';
+                revealText.style.letterSpacing = '0.5px';
+                revealText.style.color = '#ffffff'; // Forces pure clean white text
+
+                // CRUCIAL CENTERING FORCE: This will now execute perfectly without layout collisions
+                revealText.style.position = 'fixed';
+                revealText.style.top = '50%';
+                revealText.style.left = '50%';
+                revealText.style.transform = 'translate(-50%, -50%)';
+                revealText.style.textAlign = 'center';
+                revealText.style.width = '100%';
+                revealText.style.maxWidth = '100vw';
+                revealText.style.padding = '0 20px';
+                revealText.style.zIndex = '1000';
+
+                // Deepened shadow to make the stylized white text bounce right off the photo canvas cleanly
+                revealText.style.textShadow = '0 4px 25px rgba(15, 23, 42, 0.75)';
+            }
+
+            // Trigger local instant custom confetti engine
+            clearInterval(confettiInterval);
+            confettiInterval = setInterval(spawnLocalConfetti, 40);
+            setTimeout(() => { clearInterval(confettiInterval); }, 4000);
+        }
+
+
+
+
+
+    function spawnLocalConfetti() {
+        const confettiColors = ['#60a5fa', '#93c5ff', '#ffffff', '#1e3a8a', '#3b82f6'];
+        const particle = document.createElement('div');
+        particle.classList.add('custom-confetti');
+
+        particle.style.backgroundColor = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+        particle.style.left = Math.random() * 100 + 'vw';
+
+        const size = 5 + Math.random() * 8;
+        particle.style.width = size + 'px';
+        particle.style.height = size + 'px';
+
+        const duration = 1.5 + Math.random() * 2;
+        particle.style.animationDuration = duration + 's';
+
+        document.body.appendChild(particle);
+        setTimeout(() => { particle.remove(); }, duration * 1000);
+    }
+
+    function resetToMenu() {
+        const alertOverlayEl = document.getElementById('alertOverlay');
+        if (alertOverlayEl) alertOverlayEl.style.display = 'none';
+        if (gameCanvas) gameCanvas.innerHTML = '';
+        switchScreen('screenMenu');
+    }
+
+    function switchScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        const targetScreen = document.getElementById(screenId);
+        if (targetScreen) targetScreen.classList.add('active');
+    }
+</script>
